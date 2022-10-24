@@ -1,0 +1,17 @@
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\bin\Debug\net6.0\Repository.deps.json
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\bin\Debug\net6.0\Repository.runtimeconfig.json
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\bin\Debug\net6.0\Repository.dll
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\bin\Debug\net6.0\Repository.pdb
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\bin\Debug\net6.0\Entities.dll
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\bin\Debug\net6.0\Entities.pdb
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\obj\Debug\net6.0\Repository.csproj.AssemblyReference.cache
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\obj\Debug\net6.0\Repository.GeneratedMSBuildEditorConfig.editorconfig
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\obj\Debug\net6.0\Repository.AssemblyInfoInputs.cache
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\obj\Debug\net6.0\Repository.AssemblyInfo.cs
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\obj\Debug\net6.0\Repository.csproj.CoreCompileInputs.cache
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\obj\Debug\net6.0\Repository.csproj.CopyComplete
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\obj\Debug\net6.0\Repository.dll
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\obj\Debug\net6.0\refint\Repository.dll
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\obj\Debug\net6.0\Repository.pdb
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\obj\Debug\net6.0\Repository.genruntimeconfig.cache
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\Repository\obj\Debug\net6.0\ref\Repository.dll
