@@ -1,0 +1,19 @@
+﻿using Contract.Response;
+using Entities.RequestDto;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Contract
+{
+    public interface IAddressBookService
+    {
+        AddressBookAddResponse CreateAddressBook(AddressBookCreateDto addressBookData, Guid userId);
+        AddressBookResponse GetAddressBook(Guid addressBookId, Guid tokenUserId);
+        AddressBookAddResponse UpdateAddressBook(AddressBookUpdateDto addressBookData, Guid addressBookId, Guid userId);
+        CountResponse GetCount(Guid userId);
+        MessageResponse DeleteAddressBook(Guid addressBookId, Guid userId);
+    }
+}
