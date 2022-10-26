@@ -3,6 +3,7 @@ using Contract;
 using Entities;
 using Entities.Dto;
 using log4net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,6 +12,7 @@ namespace AddressBook.Controllers
 {
     [Route("api/metadata")]
     [ApiController]
+    [Authorize]
     public class MetaDataController : ControllerBase
     {
         private readonly IRefSetService _refSetService;
@@ -232,5 +234,17 @@ namespace AddressBook.Controllers
 
             return Ok(refSetToReturn);
         }
+
+        [HttpGet]
+        [Route("{key}")]
+        public IActionResult Mappingdata(string key)
+        {
+            Guid tokenUserId;
+            Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
+
+            var response = _refSetService.Metadata(key);
+            return Ok(response);
+        }
+
     }
 }

@@ -2,6 +2,8 @@
 using Contract.IHelper;
 using Contract.Response;
 using Entities;
+using Entities.Dto;
+using Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,15 +17,17 @@ namespace Services
         private readonly IRefSetRepo _refSetRepository;
         private readonly IRefSetTermRepo _refSetMappingRepository;
         private readonly IRefTermRepo _refTermRepository;
+        private readonly BookRepository _bookRepository;
 
         public RefSetService(
             IRefSetRepo refSetRepository,
             IRefSetTermRepo refSetMappingRepository,
-            IRefTermRepo refTermRepository)
+            IRefTermRepo refTermRepository, BookRepository bookRepository)
         {
             _refSetRepository = refSetRepository;
             _refSetMappingRepository = refSetMappingRepository;
             _refTermRepository = refTermRepository;
+            _bookRepository = bookRepository;
         }
 
         public RefSetResponse CreateRefSet(RefSet refSetData)
@@ -92,6 +96,14 @@ namespace Services
             _refSetRepository.Save();
 
             return new RefSetResponse(true, null, refSet);
+        }
+
+        public MetadataDto Metadata(string key)
+        {
+            var metadata = new MetadataDto();
+            metadata.Id = _bookRepository.RefSets.Where(a => a.Set == key).Select(a => a.Id).SingleOrDefault();
+            metadata.Key = key;
+            return metadata;
         }
     }
 }

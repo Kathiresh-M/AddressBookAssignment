@@ -3,14 +3,16 @@ using Contract;
 using Entities;
 using Entities.Dto;
 using log4net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace AddressBook.Controllers
 {
-    [Route("api/asset")]
     [ApiController]
+    [Route("api/asset")]
+    [Authorize]
     public class AssetController : ControllerBase
     {
         private readonly IAssetService _assetService;
@@ -36,17 +38,17 @@ namespace AddressBook.Controllers
         /// <param name="file">asset file</param>
         /// <returns>asset meta data</returns>
         [HttpPost]
-        [Route("{Id}")]
+        [Route("{addressBookId}")]
         public IActionResult UploadAsset(Guid addressBookId,[FromForm] IFormFile file)
         {
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
 
-            if (!isValidToken)
+            /*if (!isValidToken)
             {
                 _log.Warn("User with invalid token, trying to upload user data");
                 return Unauthorized();
-            }
+            }*/
 
             if (!ModelState.IsValid)
             {
@@ -59,25 +61,32 @@ namespace AddressBook.Controllers
                 _log.Error("Trying to update address book data with not a valid addressbook Id by user: " + tokenUserId);
                 return BadRequest("Not a valid address book ID.");
             }
-
-            var asset = new Asset();
-            asset.Id = Guid.NewGuid();
-            asset.DownloadUrl = GenerateDownloadUrl(asset.Id);
-            var response = _assetService.AddAsset(addressBookId, tokenUserId, asset, file);
-
-            if (!response.IsSuccess && response.Message.Contains("not found"))
+            try
             {
-                return NotFound(response.Message);
-            }
+                var asset = new Asset();
+                asset.Id = Guid.NewGuid();
+                //asset.DownloadUrl = GenerateDownloadUrl(asset.Id);
+                asset.DownloadUrl = GenerateDownloadUrl(addressBookId);
+                var response = _assetService.AddAsset(addressBookId, tokenUserId, asset, file);
 
-            if (!response.IsSuccess && response.Message.Contains("exists"))
+               /* if (!response.IsSuccess && response.Message.Contains("not found"))
+                {
+                    return NotFound(response.Message);
+                }*/
+
+                if (!response.IsSuccess && response.Message.Contains("exists"))
+                {
+                    return Conflict(response.Message);
+                }
+
+                var assetToReturn = _mapper.Map<AssetReturnDto>(response.Asset);
+
+                return Ok(assetToReturn);
+            }
+            catch (FileNotFoundException ex)
             {
-                return Conflict(response.Message);
+                return NotFound("Not found exception please check your code" + ex);
             }
-
-            var assetToReturn = _mapper.Map<AssetReturnDto>(response.Asset);
-
-            return Ok(assetToReturn);
         }
 
         /// <summary>
@@ -92,11 +101,11 @@ namespace AddressBook.Controllers
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
 
-            if (!isValidToken)
+            /*if (!isValidToken)
             {
                 _log.Warn("User with invalid token, trying to upload user data");
                 return Unauthorized();
-            }
+            }*/
 
             if (Id == null || Id == Guid.Empty)
             {
@@ -116,9 +125,10 @@ namespace AddressBook.Controllers
             return File(bytes, response.Asset.FileType, response.Asset.FileName);
         }
 
-        private string GenerateDownloadUrl(Guid assetId)
+        private string GenerateDownloadUrl(Guid addressBookId)
         {
-            return Url.Link("DownloadImage", new { Id = assetId });
+            //return Url.Link("https://localhost:7258/api/asset/", new { Id = assetId });
+            return ("https://localhost:7258/api/asset/"+ addressBookId);
         }
     }
 

@@ -12,6 +12,7 @@ namespace AddressBook.Controllers
 {
     [Route("api/user")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -35,7 +36,8 @@ namespace AddressBook.Controllers
         /// </summary>
         /// <param name="user">user login credential data</param>
         /// <returns>JSON Web Token</returns>
-        [HttpPost, AllowAnonymous]
+        [HttpPost]
+        [AllowAnonymous]
         [Route("auth")]
         public IActionResult AuthUser([FromBody] UserDto user)
         {
@@ -62,7 +64,8 @@ namespace AddressBook.Controllers
         /// </summary>
         /// <param name="user">user data to be created</param>
         /// <returns>user data with Id</returns>
-        [HttpPost, AllowAnonymous]
+        [HttpPost]
+        [AllowAnonymous]
         [Route("register")]
         public IActionResult CreateUser([FromBody] UserCreationDto user)
         {
@@ -93,11 +96,11 @@ namespace AddressBook.Controllers
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
 
-            if (!isValidToken)
+           /* if (!isValidToken)
             {
                 _log.Warn($"User with invalid token, trying to access user data");
                 return Unauthorized();
-            }
+            }*/
 
             if (Id == null || Id == Guid.Empty)
             {
@@ -132,11 +135,11 @@ namespace AddressBook.Controllers
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
 
-            if (!isValidToken)
+           /* if (!isValidToken)
             {
                 _log.Warn($"User with invalid token, trying to access user data");
                 return Unauthorized();
-            }
+            }*/
 
             if (!ModelState.IsValid)
             {
@@ -175,11 +178,11 @@ namespace AddressBook.Controllers
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
 
-            if (!isValidToken)
+            /*if (!isValidToken)
             {
                 _log.Warn("User with invalid token, trying to delete user data.");
                 return Unauthorized();
-            }
+            }*/
 
             if (Id == null || Id == Guid.Empty)
             {

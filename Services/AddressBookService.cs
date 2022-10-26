@@ -24,10 +24,11 @@ namespace Services
         private readonly IRefTermRepo _refTermRepo;
         private readonly IEmailRepo _emailRepo;
         private readonly IPhoneRepo _phoneRepo;
+        private readonly IUserRepo _userRepo;
 
         public AddressBookService(IAddressBookRepo addressBookRepo, IRefSetRepo refSetRepo,
             IRefSetTermRepo refSetTermRepo, IAssetRepo assetRepo, IAddressRepo addressRepo,
-            IRefTermRepo refTermRepo, IEmailRepo emailRepo, IPhoneRepo phoneRepo)
+            IRefTermRepo refTermRepo, IEmailRepo emailRepo, IPhoneRepo phoneRepo, IUserRepo userRepo)
         {
             _addressBookRepo = addressBookRepo;
             _refSetRepo = refSetRepo;
@@ -37,6 +38,7 @@ namespace Services
             _refTermRepo = refTermRepo;
             _emailRepo = emailRepo;
             _phoneRepo = phoneRepo;
+            _userRepo = userRepo;
         }
         public AddressBookAddResponse CreateAddressBook(AddressBookCreateDto addressBookData, Guid userId)
         {
@@ -132,6 +134,58 @@ namespace Services
             };
 
             return new AddressBookResponse(true, "", addressBookToReturn);
+        }
+
+        //GetAddressBook
+        public PagedList<AddressBookReturnDto> GetAddressBooks(Guid userId, AddressBookResource resourceParameter)
+        {
+            var user = _userRepo.GetUser(userId);
+
+            if (user == null)
+                return PagedList<AddressBookReturnDto>.Create(new List<AddressBookReturnDto>(), 0, 1);
+
+            var addressBooksToReturn = new List<AddressBookReturnDto>();
+
+            var addressBooks = _addressBookRepo.GetAddressBooks(userId);
+
+            foreach (var addressBook in addressBooks)
+            {
+                var asset = _assetRepo.GetAssetByAddressBookId(addressBook.Id);
+                if (asset == null)
+                    asset = new Asset();
+                addressBooksToReturn.Add(new AddressBookReturnDto()
+                {
+                    Id = addressBook.Id,
+                    FirstName = addressBook.FirstName,
+                    LastName = addressBook.LastName,
+                    Emails = getEmails(addressBook.Id),
+                    Phones = getPhones(addressBook.Id),
+                    Addresses = getAddresses(addressBook.Id),
+                    AssetDTO = new AssetIdDto() { FileId = asset.Id }
+                });
+            }
+
+            if (resourceParameter.SortBy.ToLower() == "lastname" && resourceParameter.SortOrder.ToLower() == "asc")
+            {
+                addressBooksToReturn = addressBooksToReturn.OrderBy(addressBook => addressBook.LastName).ToList();
+            }
+
+            if (resourceParameter.SortBy.ToLower() == "lastname" && resourceParameter.SortOrder.ToLower() == "desc")
+            {
+                addressBooksToReturn = addressBooksToReturn.OrderByDescending(addressBook => addressBook.LastName).ToList();
+            }
+
+            if (resourceParameter.SortBy.ToLower() == "firstname" && resourceParameter.SortOrder.ToLower() == "asc")
+            {
+                addressBooksToReturn = addressBooksToReturn.OrderBy(addressBook => addressBook.FirstName).ToList();
+            }
+
+            if (resourceParameter.SortBy.ToLower() == "firstname" && resourceParameter.SortOrder.ToLower() == "desc")
+            {
+                addressBooksToReturn = addressBooksToReturn.OrderByDescending(addressBook => addressBook.FirstName).ToList();
+            }
+
+            return PagedList<AddressBookReturnDto>.Create(addressBooksToReturn, resourceParameter.PageNumber, resourceParameter.PageSize);
         }
 
         //Update AddressBook
