@@ -24,7 +24,7 @@ namespace Entities
 
         [Required, StringLength(maximumLength: 25, MinimumLength = 5)]
         [Column(name: "city")]
-        public string City { get; set; }
+        public string? City { get; set; }
 
         [Required, StringLength(maximumLength: 25, MinimumLength = 5)]
         [Column(name: "state_name")]

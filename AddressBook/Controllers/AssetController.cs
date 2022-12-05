@@ -11,7 +11,6 @@ using System.Security.Claims;
 namespace AddressBook.Controllers
 {
     [ApiController]
-    [Route("api/asset")]
     [Authorize]
     public class AssetController : ControllerBase
     {
@@ -38,43 +37,28 @@ namespace AddressBook.Controllers
         /// <param name="file">asset file</param>
         /// <returns>asset meta data</returns>
         [HttpPost]
-        [Route("{addressBookId}")]
+        [Route("api/asset/{addressBookId}")]
         public IActionResult UploadAsset(Guid addressBookId,[FromForm] IFormFile file)
         {
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
-
-            /*if (!isValidToken)
-            {
-                _log.Warn("User with invalid token, trying to upload user data");
-                return Unauthorized();
-            }*/
-
-            if (!ModelState.IsValid)
-            {
-                _log.Error("Invalid user updation details used by user Id: " + tokenUserId);
-                return BadRequest("Not a valid asset request data");
-            }
 
             if (addressBookId == null || addressBookId == Guid.Empty)
             {
                 _log.Error("Trying to update address book data with not a valid addressbook Id by user: " + tokenUserId);
                 return BadRequest("Not a valid address book ID.");
             }
-            try
-            {
                 var asset = new Asset();
                 asset.Id = Guid.NewGuid();
-                //asset.DownloadUrl = GenerateDownloadUrl(asset.Id);
                 asset.DownloadUrl = GenerateDownloadUrl(addressBookId);
                 var response = _assetService.AddAsset(addressBookId, tokenUserId, asset, file);
 
-               /* if (!response.IsSuccess && response.Message.Contains("not found"))
-                {
-                    return NotFound(response.Message);
-                }*/
+            if (!response.IsSuccess && response.Message.Contains("not found"))
+            {
+                return NotFound(response.Message);
+            }
 
-                if (!response.IsSuccess && response.Message.Contains("exists"))
+            if (!response.IsSuccess && response.Message.Contains("exists"))
                 {
                     return Conflict(response.Message);
                 }
@@ -82,11 +66,6 @@ namespace AddressBook.Controllers
                 var assetToReturn = _mapper.Map<AssetReturnDto>(response.Asset);
 
                 return Ok(assetToReturn);
-            }
-            catch (FileNotFoundException ex)
-            {
-                return NotFound("Not found exception please check your code" + ex);
-            }
         }
 
         /// <summary>
@@ -95,17 +74,11 @@ namespace AddressBook.Controllers
         /// <param name="Id">Id of the Asset</param>
         /// <returns>asset file</returns>
         [HttpGet]
-        [Route("{Id}")]
+        [Route("api/asset/{Id}")]
         public IActionResult DownloadAsset(Guid Id)
         {
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
-
-            /*if (!isValidToken)
-            {
-                _log.Warn("User with invalid token, trying to upload user data");
-                return Unauthorized();
-            }*/
 
             if (Id == null || Id == Guid.Empty)
             {
@@ -127,7 +100,6 @@ namespace AddressBook.Controllers
 
         private string GenerateDownloadUrl(Guid addressBookId)
         {
-            //return Url.Link("https://localhost:7258/api/asset/", new { Id = assetId });
             return ("https://localhost:7258/api/asset/"+ addressBookId);
         }
     }

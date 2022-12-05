@@ -10,7 +10,6 @@ using System.Text.Json;
 
 namespace AddressBook.Controllers
 {
-    [Route("api/addressbook")]
     [ApiController]
     [Authorize]
     public class AddressBookController : ControllerBase
@@ -34,48 +33,33 @@ namespace AddressBook.Controllers
         /// <param name="addressBookData">address book data to be created</param>
         /// <returns>Id of the address book created</returns>
         [HttpPost]
+        [Route("api/account")]
         public IActionResult CreateAddressBook([FromBody] AddressBookCreateDto addressBookData)
         {
             if (!ModelState.IsValid)
             {
-                _log.Error("Invalid addressbook details used.");
-                return BadRequest("Enter valid addressbook data");
+                return BadRequest("The addressBookData field is required");
             }
 
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
 
-            /*if (!isValidToken)
-            {
-                _log.Warn($"User with invalid token, trying to access address book data");
-                return Unauthorized();
-            }
-
-            if (tokenUserId == null || tokenUserId == Guid.Empty)
-            {
-                _log.Error("Trying to access address book count with not a valid user id by user: " + tokenUserId);
-                return BadRequest("Not a valid user ID.");
-            }*/
-            try
-            {
+           
                 var response = _addressBookService.CreateAddressBook(addressBookData, tokenUserId);
 
-                if (!response.IsSuccess && response.Message.Contains("already exists") || response.Message.Contains("not valid"))
+            try { 
+
+                if (!response.IsSuccess && response.Message.Contains("already exists"))
                 {
                     return Conflict(response.Message);
                 }
 
-                /*if (!response.IsSuccess && response.Message.Contains("not found"))
-                {
-                    return NotFound(response.Message);
-                }*/
-
                 return Ok($"Address book created with ID: {response.AddressBook.Id}");
-            }
-            catch(Exception ex)
-            {
-                return NotFound("Not found exception please check your code"+ex);
-            }
+                }
+                catch (Exception ex)
+                {
+                    return NotFound("Not found exception please check your code" + ex);
+                }
         }
 
         /// <summary>
@@ -84,43 +68,27 @@ namespace AddressBook.Controllers
         /// <param name="addressBookId">Address Book Id</param>
         /// <returns>an address book</returns>
         [HttpGet]
-        [Route("{addressBookId}")]
+        [Route("api/account/{addressBookId}")]
         public IActionResult GetAnAddressBook(Guid addressBookId)
         {
 
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
 
-            /*if (!isValidToken)
-            {
-                _log.Warn($"User with invalid token, trying to access user data");
-                return Unauthorized();
-            }*/
-            try
-            {
                 if (addressBookId == null || addressBookId == Guid.Empty)
                 {
                     _log.Error("Trying to access address book with not a valid address book id by user: " + tokenUserId);
                     return BadRequest("Not a valid address book ID.");
                 }
-
+            try
+            {
                 var response = _addressBookService.GetAddressBook(addressBookId, tokenUserId);
-
-                if (!response.IsSuccess && response.Message.Contains("found"))
-                {
-                    return NotFound(response.Message);
-                }
-
-                /*if (!response.IsSuccess && response.Message.Contains("User"))
-                {
-                    return NotFound("Address book not found");
-                }*/
 
                 return Ok(response.addressBook);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return NotFound("Address book not found");
+                return NotFound("Not found exception please check your code" + ex);
             }
         }
 
@@ -130,29 +98,13 @@ namespace AddressBook.Controllers
         /// <param name="resourceParameter">query paramters to get pagination and sorting data</param>
         /// <returns>list of address books</returns>
         [HttpGet]
+        [Route("api/account")]
         public IActionResult GetAddressBooks([FromQuery] AddressBookResource resourceParameter)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
 
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
 
-            /*if (!isValidToken)
-            {
-                _log.Warn($"User with invalid token, trying to access address book data");
-                return Unauthorized();
-            }
-
-            if (tokenUserId == null || tokenUserId == Guid.Empty)
-            {
-                _log.Error("Trying to access address book count with not a valid user id by user: " + tokenUserId);
-                return BadRequest("Not a valid user ID.");
-            }*/
-
-            
             var addressBooksToReturn = _addressBookService.GetAddressBooks(tokenUserId, resourceParameter);
 
             var previousPageLink = addressBooksToReturn.HasPrevious ? CreateUri(resourceParameter, UriType.PreviousPage) : null;
@@ -181,7 +133,7 @@ namespace AddressBook.Controllers
         /// <param name="addressBook">address book data to be updated</param>
         /// <returns>Id of the address book created</returns>
         [HttpPut]
-        [Route("{Id}")]
+        [Route("api/account/{Id}")]
         public IActionResult UpdateAddressBook(Guid addressBookId, [FromBody] AddressBookUpdateDto addressBookData)
         {
             if (!ModelState.IsValid)
@@ -193,19 +145,6 @@ namespace AddressBook.Controllers
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
 
-            /*if (!isValidToken)
-            {
-                _log.Warn($"User with invalid token, trying to access address book data");
-                return Unauthorized();
-            }
-
-            if (tokenUserId == null || tokenUserId == Guid.Empty)
-            {
-                _log.Error("Trying to update address book with not a valid user id by user: " + tokenUserId);
-                return BadRequest("Not a valid user ID.");
-            }*/
-            try
-            {
                 var response = _addressBookService.UpdateAddressBook(addressBookData, addressBookId, tokenUserId);
 
                 if (!response.IsSuccess && response.Message.Contains("Additional") || response.Message.Contains("duplication") || response.Message.Contains("not valid"))
@@ -213,17 +152,12 @@ namespace AddressBook.Controllers
                     return Conflict(response.Message);
                 }
 
-                /*if (!response.IsSuccess && response.Message.Contains("not found"))
-                {
-                    return NotFound(response.Message);
-                }*/
-
-                return Ok("Address book updated successfully.");
-            }
-            catch (Exception ex)
+            if (!response.IsSuccess && response.Message.Contains("not found"))
             {
-                return NotFound("Not found exception please check your code" + ex);
+                return NotFound(response.Message);
             }
+
+            return Ok("Address book updated successfully.");
         }
 
         /// <summary>
@@ -231,23 +165,11 @@ namespace AddressBook.Controllers
         /// </summary>
         /// <returns>Count of the address books</returns>
         [HttpGet]
-        [Route("count")]
+        [Route("api/account/count")]
         public IActionResult GetAddressBookCount()
         {
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
-
-           /* if (!isValidToken)
-            {
-                _log.Warn($"User with invalid token, trying to access address book data");
-                return Unauthorized();
-            }
-
-            if (tokenUserId == null || tokenUserId == Guid.Empty)
-            {
-                _log.Error("Trying to access address book count with not a valid user id by user: " + tokenUserId);
-                return BadRequest("Not a valid user ID.");
-            }*/
 
             var response = _addressBookService.GetCount(tokenUserId);
             if (!response.IsSuccess && response.Message.Contains("User"))
@@ -264,17 +186,11 @@ namespace AddressBook.Controllers
         /// <param name="addressBookId">Id of the address book</param>
         /// <returns></returns>
         [HttpDelete]
-        [Route("{Id}")]
+        [Route("api/account/{Id}")]
         public IActionResult DeleteAddressBook(Guid addressBookId)
         {
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
-
-           /* if (!isValidToken)
-            {
-                _log.Warn($"User with invalid token, trying to access address book data");
-                return Unauthorized();
-            }*/
 
             var addressBookResponseData = _addressBookService.GetAddressBook(addressBookId, tokenUserId);
 
