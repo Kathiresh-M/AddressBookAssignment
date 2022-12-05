@@ -1,0 +1,457 @@
+openapi: 3.0.3
+info:
+  title: Address Book API
+  description: Address Book API Specification
+  contact:
+    name: Address Book
+    url: http://addressBook
+  version: 1.0.11
+paths:
+  /api/auth/signin:
+    description: Address Book Signin
+    post:
+      description: Post Username and Password for Signin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                  Username :
+                    type: string
+                    example: abc@gmail.com
+                  Password:
+                    type: string
+                    example: Abc@123
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    accessToken:
+                      type: string
+                      example: DHVNLSEIeiLKOIF3DLKsgjlsiRLFJ4GNITIRGSLgrigl5ifWNshtinl4sltisrlLS0PSLxlghie95glfkgTIJJi5jf
+                    tokenType:
+                      type: string
+                      example: Bearer
+        401:
+          description: Unauthorized
+        500:
+          description: Internal server error
+          
+  /api/meta-data/ref-set/{key}:
+    get:
+      description: To get the metadata list like Address Type, Email address type, phone number type, country etc.,
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema:
+            type: string
+            example: personal
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: string
+                      example: 1
+                    key:
+                      type: string
+                      example: personal
+                    description:
+                      type: string
+                      description: Personal details
+        401:
+          description: Not Found
+        404:
+          description: Unauthorized
+        500:
+          description: Internal server error
+          
+  /api/account:
+    post:
+      description: Create address book with first name, last name and their communication details.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses:
+        201:
+          description: Created
+        401:
+          description: Unauthorized
+        409:
+          description: Conflict
+        404:
+          description: Not Found
+        500:
+          description: Internal server error
+    get:
+      description: To get all the address book stored in the database
+      responses:
+        200:
+          description: List of the address book with name and communication details
+        401:
+          description: Unauthorized
+        404:
+          description: Not Found
+        500:
+          description: Internal server error
+          
+  /api/account/count:
+    get:
+      description: To get the total count of all address book stored in the database
+      responses:
+        200:
+          description: Success
+          content:
+            application/Json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    count:
+                      type: integer
+                      example: 5
+        401:
+          description: Unauthorized
+        500:
+          description: Internal server error
+          
+  /api/account/{id}:
+    get:
+      description: To get an address book details stored in the database by using ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        401:
+          description: Unauthorized
+        404:
+          description: Not Found
+        500:
+          description: Internal server error
+    put:
+      description: To update the existing address book details like first name, last name and their communication details
+      parameters:
+        - in: path    
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 2
+      requestBody:
+        description: Update an existent user
+        content:
+          application/Json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses:
+        200:
+          description: Success
+        409:
+          description: Error messages like email address already exists and invalid value for a field
+        404:
+          description: Error when the metadata is not found in the database
+        500:
+          description: Internal server error
+    delete:
+      description: To delete an address book details stored in the database by using id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        200:
+          description: Success
+        401:
+          description: Unauthorized
+        404:
+          description: Not Found
+        500:
+          description: Internal server error
+  
+  /api/asset/upload-file:
+    post:
+      description: To upload the image or any file and then map it to an account
+      requestBody:
+        content:
+          image/png:
+            schema:
+              type: string
+              format: binary
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUpload'
+        401:
+          description: Unautthorized
+        500:
+          description: Internal server error
+          
+  /api/ref-set:
+    post:
+      description: Create ref-set content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefSet'
+      responses:
+        200: 
+          description: Success
+        401:
+          description: Unautthorized
+        500:
+          description: Internal server error
+        
+  /api/ref-term:
+    post:
+      description: Create ref-term content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefTerm'
+      responses:
+        200: 
+          description: Success
+        401:
+          description: Unautthorized
+        500:
+          description: Internal server error
+          
+  /api/set-ref-term:
+    post:
+      description: Create Set-Ref-Term content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetRefTerm'
+      responses:
+        200: 
+          description: Success
+        401:
+          description: Unautthorized
+        500:
+          description: Internal server error
+          
+  /api/assert/{assert-id}:
+    get:
+      description: get assert details by using assert id
+      parameters:
+        - in: path
+          name: assert-id
+          required: true
+          schema:
+            type: string
+            example: 1
+      responses:
+        200:
+          description: Success
+        401:
+          description: Unauthorized
+        404:
+          description: Not found
+        500:
+          description: Intenal Server Error
+          
+components:
+  schemas:
+    Account:
+     type: object
+     properties:
+       id:
+         type: string
+         example: 1
+       firstName:
+         type: string
+         example: Sam
+       lastName:
+          type: string
+          example: S
+       emails:
+          type: array
+          items :
+              $ref: '#/components/schemas/Email'
+       Addresses:
+          type: array
+          items:
+             $ref: '#/components/schemas/Addresses'
+       phone:
+          type: array
+          items :  
+            $ref: '#/components/schemas/Phones'
+     
+    Email:
+     type: object
+     properties:
+        id:
+          type: string
+          example: 1
+        email_id :
+          type : integer
+          example: 1
+        emailAddress:
+          type: string
+          example: sam@gmail.com
+        setref_id:
+          type: integer
+          example: 1
+        type:
+          type: object
+          properties:
+            key:
+              type: string
+              example: personal
+   
+       
+ 
+    Addresses:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        line1:
+          type: string
+          example: 123123
+        line2:
+          type: string
+          example: street
+        city:
+          type: string
+          example: chennai
+        zipcode:
+          type: string
+          example: 654321
+        stateName:
+          type: string
+          example: TamilNadu
+        type:
+          type: object
+          properties:
+            key:
+              type: string
+              example: Home
+          required:
+          - key
+        country:
+          type: object
+          properties:
+            key:
+              type: string
+              example: India
+       
+      xml:
+        name: Addresses
+        
+    Phones:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        phoneNumber:
+          type: string
+          example: 9876549876
+        type:
+          type: object
+          properties:
+            key:
+              type: string
+              example: Persoanl
+              
+    FileUpload:
+      type: array
+      items:
+        properties:
+          id:
+            type: string
+            example: b983cea4-1eeb-4bee-8b09-3d2377171c38
+          fileName:
+            type: string
+            example: logo.jpg
+          DownloadUrl:
+            type: string
+            example: http://localhost:5432/api/asset/downloadFile/b983cea4-1eeb-4bee-8b09-3d2377171c38
+          fileType:
+            type: string
+            example: image/jpeg
+          size:
+            type: integer
+            example: 76879
+          fileContent:
+            type: string
+            example: null
+      
+    RefSet :
+       type : object
+       properties:
+         id :
+           type : integer
+           example: 1
+         type :
+            type : string
+            example: email
+         description:
+            type: string
+            example: this key contains personal details
+            
+    RefTerm :
+       type : object
+       properties :
+         id :
+           type : integer
+           example: 1
+         Key :
+           type : string
+           example: personal
+         description:
+           type: string
+           example: this key contains personal details
+           
+    SetRefTerm   :
+      type : object
+      properties:
+         id :
+           type: integer
+           example: 1
+         refSet_id :
+            type: integer
+            example: 1
+         refterm_id :
+             type : integer
+             example: 1
