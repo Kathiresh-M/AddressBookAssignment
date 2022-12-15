@@ -3,14 +3,15 @@ using Contract;
 using Entities;
 using Entities.Dto;
 using log4net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace AddressBook.Controllers
 {
-    [Route("api/asset")]
     [ApiController]
+    [Authorize]
     public class AssetController : ControllerBase
     {
         private readonly IAssetService _assetService;
@@ -36,34 +37,21 @@ namespace AddressBook.Controllers
         /// <param name="file">asset file</param>
         /// <returns>asset meta data</returns>
         [HttpPost]
-        [Route("{Id}")]
+        [Route("api/asset/{addressBookId}")]
         public IActionResult UploadAsset(Guid addressBookId,[FromForm] IFormFile file)
         {
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
-
-            if (!isValidToken)
-            {
-                _log.Warn("User with invalid token, trying to upload user data");
-                return Unauthorized();
-            }
-
-            if (!ModelState.IsValid)
-            {
-                _log.Error("Invalid user updation details used by user Id: " + tokenUserId);
-                return BadRequest("Not a valid asset request data");
-            }
 
             if (addressBookId == null || addressBookId == Guid.Empty)
             {
                 _log.Error("Trying to update address book data with not a valid addressbook Id by user: " + tokenUserId);
                 return BadRequest("Not a valid address book ID.");
             }
-
-            var asset = new Asset();
-            asset.Id = Guid.NewGuid();
-            asset.DownloadUrl = GenerateDownloadUrl(asset.Id);
-            var response = _assetService.AddAsset(addressBookId, tokenUserId, asset, file);
+                var asset = new Asset();
+                asset.Id = Guid.NewGuid();
+                asset.DownloadUrl = GenerateDownloadUrl(addressBookId);
+                var response = _assetService.AddAsset(addressBookId, tokenUserId, asset, file);
 
             if (!response.IsSuccess && response.Message.Contains("not found"))
             {
@@ -71,13 +59,13 @@ namespace AddressBook.Controllers
             }
 
             if (!response.IsSuccess && response.Message.Contains("exists"))
-            {
-                return Conflict(response.Message);
-            }
+                {
+                    return Conflict(response.Message);
+                }
 
-            var assetToReturn = _mapper.Map<AssetReturnDto>(response.Asset);
+                var assetToReturn = _mapper.Map<AssetReturnDto>(response.Asset);
 
-            return Ok(assetToReturn);
+                return Ok(assetToReturn);
         }
 
         /// <summary>
@@ -86,17 +74,11 @@ namespace AddressBook.Controllers
         /// <param name="Id">Id of the Asset</param>
         /// <returns>asset file</returns>
         [HttpGet]
-        [Route("{Id}")]
+        [Route("api/asset/{Id}")]
         public IActionResult DownloadAsset(Guid Id)
         {
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
-
-            if (!isValidToken)
-            {
-                _log.Warn("User with invalid token, trying to upload user data");
-                return Unauthorized();
-            }
 
             if (Id == null || Id == Guid.Empty)
             {
@@ -116,9 +98,9 @@ namespace AddressBook.Controllers
             return File(bytes, response.Asset.FileType, response.Asset.FileName);
         }
 
-        private string GenerateDownloadUrl(Guid assetId)
+        private string GenerateDownloadUrl(Guid addressBookId)
         {
-            return Url.Link("DownloadImage", new { Id = assetId });
+            return ("https://localhost:7258/api/asset/"+ addressBookId);
         }
     }
 

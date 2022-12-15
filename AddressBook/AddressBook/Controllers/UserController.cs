@@ -10,8 +10,8 @@ using System.Security.Claims;
 
 namespace AddressBook.Controllers
 {
-    [Route("api/user")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -35,8 +35,9 @@ namespace AddressBook.Controllers
         /// </summary>
         /// <param name="user">user login credential data</param>
         /// <returns>JSON Web Token</returns>
-        [HttpPost, AllowAnonymous]
-        [Route("auth")]
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("api/user/auth")]
         public IActionResult AuthUser([FromBody] UserDto user)
         {
             if (!ModelState.IsValid)
@@ -44,17 +45,19 @@ namespace AddressBook.Controllers
                 _log.Error("Invalid login details used.");
                 return BadRequest("Enter valid user data");
             }
+
             var response = _userService.AuthUser(user);
 
-            if (!response.IsSuccess)
+            try
             {
-                _log.Info(user.UserName + " tried to access address book api with wrong credentials");
-                return Unauthorized("User not authenticated");
+                _log.Info(user.UserName + " user logged in.");
+                var token = new Token(response.AccessToken, response.TokenType);
+                return Ok(token);
             }
-
-            _log.Info(user.UserName + " user logged in.");
-            var token = new Token(response.AccessToken, response.TokenType);
-            return Ok(token);
+            catch (Exception ex)
+            {
+                return Unauthorized("User not authenticated"+ex);
+            }
         }
 
         /// <summary>
@@ -62,8 +65,9 @@ namespace AddressBook.Controllers
         /// </summary>
         /// <param name="user">user data to be created</param>
         /// <returns>user data with Id</returns>
-        [HttpPost, AllowAnonymous]
-        [Route("register")]
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("api/user/register")]
         public IActionResult CreateUser([FromBody] UserCreationDto user)
         {
             if (!ModelState.IsValid)
@@ -73,12 +77,16 @@ namespace AddressBook.Controllers
             }
             var response = _userService.CreateUser(user);
 
-            if (!response.IsSuccess)
+            try
+            {
+                _log.Info("User created with username: " + user.UserName);
+                var userToReturn = _mapper.Map<UserReturnDto>(response.user);
+                return Ok(userToReturn);
+            }
+            catch (Exception ex)
+            {
                 return Conflict(response.Message);
-
-            _log.Info("User created with username: " + user.UserName);
-            var userToReturn = _mapper.Map<UserReturnDto>(response.user);
-            return Ok(userToReturn);
+            }
         }
 
         /// <summary>
@@ -87,17 +95,11 @@ namespace AddressBook.Controllers
         /// <param name="Id">user Id</param>
         /// <returns>user data with id</returns>
         [HttpGet]
-        [Route("{Id}")]
+        [Route("api/user/{Id}")]
         public IActionResult GetUser(Guid Id)
         {
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
-
-            if (!isValidToken)
-            {
-                _log.Warn($"User with invalid token, trying to access user data");
-                return Unauthorized();
-            }
 
             if (Id == null || Id == Guid.Empty)
             {
@@ -105,18 +107,19 @@ namespace AddressBook.Controllers
                 return BadRequest("Not a valid user ID");
             }
 
-
             var response = _userService.GetUserById(Id, tokenUserId);
 
-            if (!response.IsSuccess)
+            try
             {
-                return NotFound(response.Message);
+                _log.Info("User with ID: " + Id + ", viewed the data.");
+                var user = _mapper.Map<UserReturnDto>(response.user);
+
+                return Ok(user);
             }
-
-            _log.Info("User with ID: " + Id + ", viewed the data.");
-            var user = _mapper.Map<UserReturnDto>(response.user);
-
-            return Ok(user);
+            catch (Exception ex)
+            {
+                return NotFound("Not found exception please check your code" + ex);
+            }
         }
 
         /// <summary>
@@ -126,23 +129,11 @@ namespace AddressBook.Controllers
         /// <param name="userData">user data to be updated</param>
         /// <returns>user data with Id</returns>
         [HttpPut]
-        [Route("{Id}")]
+        [Route("api/user/{Id}")]
         public IActionResult UpdateUser(Guid Id, [FromBody] UserUpdationDto userData)
         {
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
-
-            if (!isValidToken)
-            {
-                _log.Warn($"User with invalid token, trying to access user data");
-                return Unauthorized();
-            }
-
-            if (!ModelState.IsValid)
-            {
-                _log.Error("Invalid user updation details used by user Id: " + tokenUserId);
-                return BadRequest("Not a valid user data");
-            }
 
             if (Id == null || Id == Guid.Empty)
             {
@@ -174,12 +165,6 @@ namespace AddressBook.Controllers
 
             Guid tokenUserId;
             var isValidToken = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
-
-            if (!isValidToken)
-            {
-                _log.Warn("User with invalid token, trying to delete user data.");
-                return Unauthorized();
-            }
 
             if (Id == null || Id == Guid.Empty)
             {

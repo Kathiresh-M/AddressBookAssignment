@@ -3,15 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddressBook", "AddressBook\AddressBook.csproj", "{6B609A93-C806-4852-B1D3-9D75591C814E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AddressBookAssignment", "AddressBook\AddressBookAssignment.csproj", "{6B609A93-C806-4852-B1D3-9D75591C814E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contract", "Contract\Contract.csproj", "{D68562AD-4576-4A96-96D4-2843F7C12B59}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contract", "Contract\Contract.csproj", "{D68562AD-4576-4A96-96D4-2843F7C12B59}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Entities", "Entities\Entities.csproj", "{6443C9A8-942F-49F3-951F-47501F292A4F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Entities", "Entities\Entities.csproj", "{6443C9A8-942F-49F3-951F-47501F292A4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repository", "Repository\Repository.csproj", "{BB086345-D246-47FF-B9D4-E9C1D6327AA1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Repository", "Repository\Repository.csproj", "{BB086345-D246-47FF-B9D4-E9C1D6327AA1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services", "Services\Services.csproj", "{83606844-F977-45F3-A198-D3C88392935E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services", "Services\Services.csproj", "{83606844-F977-45F3-A198-D3C88392935E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AddressBookXUnittest", "AddressBook.XUnittest\AddressBookXUnittest.csproj", "{4A738682-5F66-46B7-8DB8-1346AB0C649B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{83606844-F977-45F3-A198-D3C88392935E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83606844-F977-45F3-A198-D3C88392935E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83606844-F977-45F3-A198-D3C88392935E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A738682-5F66-46B7-8DB8-1346AB0C649B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A738682-5F66-46B7-8DB8-1346AB0C649B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A738682-5F66-46B7-8DB8-1346AB0C649B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A738682-5F66-46B7-8DB8-1346AB0C649B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,7 +3,6 @@ D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\obj\Debug\net
 D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\obj\Debug\net6.0\AddressBook.AssemblyInfoInputs.cache
 D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\obj\Debug\net6.0\AddressBook.AssemblyInfo.cs
 D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\obj\Debug\net6.0\AddressBook.csproj.CoreCompileInputs.cache
-D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\obj\Debug\net6.0\AddressBook.MvcApplicationPartsAssemblyInfo.cs
 D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\obj\Debug\net6.0\AddressBook.MvcApplicationPartsAssemblyInfo.cache
 D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\bin\Debug\net6.0\appsettings.Development.json
 D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\bin\Debug\net6.0\appsettings.json
@@ -60,3 +59,4 @@ D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\bin\Debug\net
 D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\bin\Debug\net6.0\Npgsql.dll
 D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\bin\Debug\net6.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
 D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\bin\Debug\net6.0\Npgsql.EntityFrameworkCore.PostgreSQL.Design.dll
+D:\VSasp.netcorecode\AddressBookAssignment\AddressBook\AddressBook\obj\Debug\net6.0\AddressBook.MvcApplicationPartsAssemblyInfo.cs

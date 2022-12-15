@@ -3,14 +3,15 @@ using Contract;
 using Entities;
 using Entities.Dto;
 using log4net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace AddressBook.Controllers
 {
-    [Route("api/metadata")]
     [ApiController]
+    [Authorize]
     public class MetaDataController : ControllerBase
     {
         private readonly IRefSetService _refSetService;
@@ -31,14 +32,13 @@ namespace AddressBook.Controllers
         }
 
         //Refset controllers start
-
         /// <summary>
         /// Method to get refernce set
         /// </summary>
         /// <param name="Id">Id of reference set</param>
         /// <returns>refernce set data</returns>
         [HttpGet]
-        [Route("refset/{id}")]
+        [Route("api/metadata/refset/{id}")]
         public IActionResult GetRefSet(Guid Id)
         {
             Guid tokenUserId;
@@ -50,16 +50,18 @@ namespace AddressBook.Controllers
                 return BadRequest("Invalid ref set id");
             }
 
-            var response = _refSetService.GetRefSetById(Id);
-            if (!response.IsSuccess)
+            try
             {
-                _log.Info($"RefSet with Id: {Id} does not exists.");
-                return NotFound("RefSet does not exists.");
+                var response = _refSetService.GetRefSetById(Id);
+               
+                var refSetToReturn = _mapper.Map<RefSetToReturnDto>(response.RefSet);
+
+                return Ok(refSetToReturn);
             }
-
-            var refSetToReturn = _mapper.Map<RefSetToReturnDto>(response.RefSet);
-
-            return Ok(refSetToReturn);
+            catch (Exception ex)
+            {
+                return NotFound("Not found exception please check your code" + ex);
+            }
         }
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace AddressBook.Controllers
         /// <param name="refSetData">reference set data</param>
         /// <returns>refernce set data with Id</returns>
         [HttpPost]
-        [Route("refset")]
+        [Route("api/metadata/refset")]
         public IActionResult AddRefSet([FromBody] RefSetCreationDto refSetData)
         {
             if (!ModelState.IsValid)
@@ -77,18 +79,25 @@ namespace AddressBook.Controllers
                 return BadRequest("Invalid Ref Set data.");
             }
 
-            var refSet = _mapper.Map<RefSet>(refSetData);
-
-            var response = _refSetService.CreateRefSet(refSet);
-
-            if (!response.IsSuccess)
+            try
             {
-                return Conflict(new { message = $"Set {refSetData.Set} already exists." });
+                var refSet = _mapper.Map<RefSet>(refSetData);
+
+                var response = _refSetService.CreateRefSet(refSet);
+
+                if (!response.IsSuccess)
+                {
+                    return Conflict(new { message = $"Set {refSetData.Set} already exists." });
+                }
+
+                var refSetToReturn = _mapper.Map<RefSetToReturnDto>(response.RefSet);
+
+                return CreatedAtRoute("GetRefSet", new { Id = refSetToReturn.Id }, refSetToReturn);
             }
-
-            var refSetToReturn = _mapper.Map<RefSetToReturnDto>(response.RefSet);
-
-            return CreatedAtRoute("GetRefSet", new { Id = refSetToReturn.Id }, refSetToReturn);
+            catch (Exception ex)
+            {
+                return NotFound("Not found exception please check your code" + ex);
+            }
         }
 
         /// <summary>
@@ -97,7 +106,7 @@ namespace AddressBook.Controllers
         /// <param name="Id">reference set Id</param>
         /// <returns>no content</returns>
         [HttpDelete]
-        [Route("refset/{Id}")]
+        [Route("api/metadata/refset/{Id}")]
         public IActionResult DeleteRefSet(Guid Id)
         {
             Guid tokenUserId;
@@ -128,7 +137,7 @@ namespace AddressBook.Controllers
         /// <param name="Id">reference term Id</param>
         /// <returns>refernce term data with Id</returns>
         [HttpGet]
-        [Route("refterm/{Id}")]
+        [Route("api/metadata/refterm/{Id}")]
         public IActionResult GetRefTerm(Guid Id)
         {
             Guid tokenUserId;
@@ -159,7 +168,7 @@ namespace AddressBook.Controllers
         /// <param name="refTermData">refernce term data to create</param>
         /// <returns>refernce term data with Id</returns>
         [HttpPost]
-        [Route("refterm/{refsetId}")]
+        [Route("api/metadata/refterm/{refsetId}")]
         public IActionResult AddRefTerm(Guid refSetId, [FromBody] RefTermCreationDto refTermData)
         {
             Guid tokenUserId;
@@ -232,5 +241,17 @@ namespace AddressBook.Controllers
 
             return Ok(refSetToReturn);
         }
+
+        [HttpGet]
+        [Route("{key}")]
+        public IActionResult Mappingdata(string key)
+        {
+            Guid tokenUserId;
+            Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out tokenUserId);
+
+            var response = _refSetService.Metadata(key);
+            return Ok(response);
+        }
+
     }
 }

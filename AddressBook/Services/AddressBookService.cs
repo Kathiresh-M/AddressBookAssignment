@@ -4,6 +4,7 @@ using Contract.Response;
 using Entities;
 using Entities.Dto;
 using Entities.RequestDto;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,6 @@ using System.Threading.Tasks;
 
 namespace Services
 {
-
     public class AddressBookService : IAddressBookService
     {
         private readonly IAddressBookRepo _addressBookRepo;
@@ -24,10 +24,13 @@ namespace Services
         private readonly IRefTermRepo _refTermRepo;
         private readonly IEmailRepo _emailRepo;
         private readonly IPhoneRepo _phoneRepo;
+        private readonly IUserRepo _userRepo;
+        private readonly ILog _log;
 
         public AddressBookService(IAddressBookRepo addressBookRepo, IRefSetRepo refSetRepo,
             IRefSetTermRepo refSetTermRepo, IAssetRepo assetRepo, IAddressRepo addressRepo,
-            IRefTermRepo refTermRepo, IEmailRepo emailRepo, IPhoneRepo phoneRepo)
+            IRefTermRepo refTermRepo, IEmailRepo emailRepo, IPhoneRepo phoneRepo, IUserRepo userRepo 
+            )
         {
             _addressBookRepo = addressBookRepo;
             _refSetRepo = refSetRepo;
@@ -37,60 +40,76 @@ namespace Services
             _refTermRepo = refTermRepo;
             _emailRepo = emailRepo;
             _phoneRepo = phoneRepo;
+            _userRepo = userRepo;
+            _log = LogManager.GetLogger(typeof(AddressBookService));
         }
         public AddressBookAddResponse CreateAddressBook(AddressBookCreateDto addressBookData, Guid userId)
         {
             var addressBookCheck = _addressBookRepo.GetAddressBookByName(addressBookData.FirstName, addressBookData.LastName);
 
-            if (addressBookCheck != null && addressBookCheck.UserId == userId)
+            try
+            {
+                //if (addressBookCheck != null && addressBookCheck.UserId == userId)
+                //    return new AddressBookAddResponse(false, "Address book already exists with same first and last name.", null);
+                _log.Info("Email start to add");
+                var emailsAdded = addEmails(addressBookData.Emails);
+                if (!emailsAdded.IsSuccess)
+                    return new AddressBookAddResponse(false, emailsAdded.Message, null);
+
+                _log.Info("Email is entered successfully");
+
+                _log.Info("Phone is start to add");
+                var phonesAdded = addPhones(addressBookData.Phones);
+                if (!phonesAdded.IsSuccess)
+                    return new AddressBookAddResponse(false, phonesAdded.Message, null);
+
+                _log.Info("Phone is entered successfully");
+                _log.Info("Address start to add");
+                var addressAdded = addAddresses(addressBookData.Addresses);
+                if (!addressAdded.IsSuccess)
+                    return new AddressBookAddResponse(false, addressAdded.Message, null);
+
+                _log.Info("Address is entered successfully");
+                var addressBook = new AddressBookDto()
+                {
+                    Id = Guid.NewGuid(),
+                    FirstName = addressBookData.FirstName,
+                    LastName = addressBookData.LastName,
+                    Emails = emailsAdded.Emails,
+                    Phones = phonesAdded.Phones,
+                    Addresses = addressAdded.Addresses,
+                    UserId = userId,
+                };
+
+                foreach (var email in emailsAdded.Emails)
+                {
+                    email.UserId = userId;
+                    email.AddressBookId = addressBook.Id;
+                }
+
+                foreach (var phone in phonesAdded.Phones)
+                {
+                    phone.AddressBookId = addressBook.Id;
+                    phone.UserId = userId;
+                }
+
+                foreach (var address in addressAdded.Addresses)
+                {
+                    address.AddressBookId = addressBook.Id;
+                    address.UserId = userId;
+                }
+
+                _addressBookRepo.CreateAddressBook(addressBook);
+
+                _addressBookRepo.Save();
+
+                return new AddressBookAddResponse(true, "", addressBook);
+                _log.Info("Address Book is entered successfully");
+            }
+            catch
+            {
                 return new AddressBookAddResponse(false, "Address book already exists with same first and last name.", null);
-
-            var emailsAdded = addEmails(addressBookData.Emails);
-            if (!emailsAdded.IsSuccess)
-                return new AddressBookAddResponse(false, emailsAdded.Message, null);
-
-            var phonesAdded = addPhones(addressBookData.Phones);
-            if (!phonesAdded.IsSuccess)
-                return new AddressBookAddResponse(false, phonesAdded.Message, null);
-
-            var addressAdded = addAddresses(addressBookData.Addresses);
-            if (!addressAdded.IsSuccess)
-                return new AddressBookAddResponse(false, addressAdded.Message, null);
-
-            var addressBook = new AddressBookDto()
-            {
-                Id = Guid.NewGuid(),
-                FirstName = addressBookData.FirstName,
-                LastName = addressBookData.LastName,
-                Emails = emailsAdded.Emails,
-                Phones = phonesAdded.Phones,
-                Addresses = addressAdded.Addresses,
-                UserId = userId,
-            };
-
-            foreach (var email in emailsAdded.Emails)
-            {
-                email.UserId = userId;
-                email.AddressBookId = addressBook.Id;
             }
-
-            foreach (var phone in phonesAdded.Phones)
-            {
-                phone.AddressBookId = addressBook.Id;
-                phone.UserId = userId;
-            }
-
-            foreach (var address in addressAdded.Addresses)
-            {
-                address.AddressBookId = addressBook.Id;
-                address.UserId = userId;
-            }
-
-            _addressBookRepo.CreateAddressBook(addressBook);
-
-            _addressBookRepo.Save();
-
-            return new AddressBookAddResponse(true, "", addressBook);
         }
 
         //GetAddressBook
@@ -132,6 +151,58 @@ namespace Services
             };
 
             return new AddressBookResponse(true, "", addressBookToReturn);
+        }
+
+        //GetAddressBook
+        public PagedList<AddressBookReturnDto> GetAddressBooks(Guid userId, AddressBookResource resourceParameter)
+        {
+            var user = _userRepo.GetUser(userId);
+
+            if (user == null)
+                return PagedList<AddressBookReturnDto>.Create(new List<AddressBookReturnDto>(), 0, 1);
+
+            var addressBooksToReturn = new List<AddressBookReturnDto>();
+
+            var addressBooks = _addressBookRepo.GetAddressBooks(userId);
+
+            foreach (var addressBook in addressBooks)
+            {
+                var asset = _assetRepo.GetAssetByAddressBookId(addressBook.Id);
+                if (asset == null)
+                    asset = new Asset();
+                addressBooksToReturn.Add(new AddressBookReturnDto()
+                {
+                    Id = addressBook.Id,
+                    FirstName = addressBook.FirstName,
+                    LastName = addressBook.LastName,
+                    Emails = getEmails(addressBook.Id),
+                    Phones = getPhones(addressBook.Id),
+                    Addresses = getAddresses(addressBook.Id),
+                    AssetDTO = new AssetIdDto() { FileId = asset.Id }
+                });
+            }
+
+            if (resourceParameter.SortBy.ToLower() == "lastname" && resourceParameter.SortOrder.ToLower() == "asc")
+            {
+                addressBooksToReturn = addressBooksToReturn.OrderBy(addressBook => addressBook.LastName).ToList();
+            }
+
+            if (resourceParameter.SortBy.ToLower() == "lastname" && resourceParameter.SortOrder.ToLower() == "desc")
+            {
+                addressBooksToReturn = addressBooksToReturn.OrderByDescending(addressBook => addressBook.LastName).ToList();
+            }
+
+            if (resourceParameter.SortBy.ToLower() == "firstname" && resourceParameter.SortOrder.ToLower() == "asc")
+            {
+                addressBooksToReturn = addressBooksToReturn.OrderBy(addressBook => addressBook.FirstName).ToList();
+            }
+
+            if (resourceParameter.SortBy.ToLower() == "firstname" && resourceParameter.SortOrder.ToLower() == "desc")
+            {
+                addressBooksToReturn = addressBooksToReturn.OrderByDescending(addressBook => addressBook.FirstName).ToList();
+            }
+
+            return PagedList<AddressBookReturnDto>.Create(addressBooksToReturn, resourceParameter.PageNumber, resourceParameter.PageSize);
         }
 
         //Update AddressBook

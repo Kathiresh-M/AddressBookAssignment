@@ -1,5 +1,6 @@
 ﻿using Contract.Response;
 using Entities;
+using Entities.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +16,6 @@ namespace Contract
         RefSetResponse GetRefSetById(Guid setId);
         RefSetTermResponse GetRefTermsByRefSetId(Guid setId);
         RefSetResponse DeleteRefSetById(Guid setId);
+        MetadataDto Metadata(string key);
     }
 }
